@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络小说阅读器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'CustomFont', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('./font.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-upload {
+            background-color: #27ae60;
+        }
+        
+        .btn-upload:hover {
+            background-color: #219653;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #9b59b6;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .file-label:hover {
+            background-color: #8e44ad;
+        }
+        
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .font-size-btn {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #7f8c8d;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .font-size-btn:hover {
+            background-color: #95a5a6;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+        }
+        
+        .reader-container {
+            width: 100%;
+            max-width: 800px;
+            height: 70vh;
+            position: relative;
+            overflow: hidden;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .reader-content {
+            padding: 2rem;
+            height: 100%;
+            overflow-y: auto;
+            font-size: 1.2rem;
+            text-align: justify;
+            word-break: break-word;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .page-indicator {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+        
+        .instructions {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            padding: 0 1rem;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #95a5a6;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .touch-indicator {
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            padding: 0.5rem;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .reader-content {
+                padding: 1.5rem;
+                font-size: 1.1rem;
+            }
+            
+            .touch-indicator {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .reader-content {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+    </div>
+    
+    <header class="header">
+        <h1>网络小说阅读器</h1>
+        <div class="header-controls">
+            <button class="btn" id="prevBtn">上一页 (←)</button>
+            <button class="btn" id="nextBtn">下一页 (→)</button>
+            
+            <input type="file" id="fileInput" class="file-input" accept=".wrt,.txt">
+            <label for="fileInput" class="file-label">上传小说 (.wrt/.txt)</label>
+            
+            <div class="font-size-control">
+                <div class="font-size-btn" id="fontSmaller">A-</div>
+                <div class="font-size-btn" id="fontReset">A</div>
+                <div class="font-size-btn" id="fontBigger">A+</div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="reader-container" id="readerContainer">
+            <div class="reader-content" id="readerContent">
+                <div class="empty-state" id="emptyState">
+                    <i>📚</i>
+                    <h3>欢迎使用网络小说阅读器</h3>
+                    <p>请点击上方"上传小说"按钮，选择.wrt或.txt文件开始阅读</p>
+                    <p>电脑：使用键盘左右箭头键翻页</p>
+                    <p>手机：在屏幕上左右滑动翻页</p>
+                </div>
+            </div>
+            <div class="page-indicator" id="pageIndicator">- / -</div>
+            <div class="touch-indicator">滑动翻页 →</div>
+        </div>
+    </main>
+    
+    <div class="instructions">
+        <p>支持文件格式：.wrt (纯文本) 或 .txt | 字体：./font.ttf | 阅读进度会自动保存</p>
+    </div>
+
+    <script>
+        // 核心变量
+        let bookContent = '';
+        let currentPage = 1;
+        let totalPages = 1;
+        let pages = [];
+        let fontSize = 1.2; // 默认字体大小(rem)
+        const MAX_CONTENT_LENGTH = 2000; // 每页最大字符数
+        
+        // DOM元素
+        const readerContent = document.getElementById('readerContent');
+        const readerContainer = document.getElementById('readerContainer');
+        const pageIndicator = document.getElementById('pageIndicator');
+        const emptyState = document.getElementById('emptyState');
+        const fileInput = document.getElementById('fileInput');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const fontSmaller = document.getElementById('fontSmaller');
+        const fontReset = document.getElementById('fontReset');
+        const fontBigger = document.getElementById('fontBigger');
+        const loading = document.getElementById('loading');
+        
+        // 触摸事件相关变量
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const SWIPE_THRESHOLD = 50; // 滑动阈值(像素)
+        
+        // 初始化
+        function init() {
+            loadProgress();
+            
+            // 事件监听
+            document.addEventListener('keydown', handleKeydown);
+            fileInput.addEventListener('change', handleFileUpload);
+            prevBtn.addEventListener('click', goToPrevPage);
+            nextBtn.addEventListener('click', goToNextPage);
+            fontSmaller.addEventListener('click', decreaseFontSize);
+            fontReset.addEventListener('click', resetFontSize);
+            fontBigger.addEventListener('click', increaseFontSize);
+            
+            // 触摸事件监听
+            readerContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+            readerContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+            
+            updatePage();
+        }
+        
+        // 处理键盘事件
+        function handleKeydown(e) {
+            // 右箭头键或空格键：下一页
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                goToNextPage();
+            }
+            // 左箭头键：上一页
+            else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                goToPrevPage();
+            }
+        }
+        
+        // 处理文件上传
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // 检查文件类型
+            const fileName = file.name.toLowerCase();
+            if (!fileName.endsWith('.wrt') && !fileName.endsWith('.txt')) {
+                alert('请上传.wrt或.txt文件');
+                return;
+            }
+            
+            showLoading(true);
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                bookContent = event.target.result;
+                processBookContent();
+                currentPage = 1;
+                updatePage();
+                saveProgress();
+                showLoading(false);
+            };
+            
+            reader.onerror = function() {
+                alert('文件读取失败，请重试');
+                showLoading(false);
+            };
+            
+            reader.readAsText(file, 'UTF-8');
+        }
+        
+        // 处理书籍内容，分割为页面
+        function processBookContent() {
+            pages = [];
+            
+            if (!bookContent || bookContent.trim() === '') {
+                pages.push('无内容');
+                totalPages = 1;
+                return;
+            }
+            
+            // 清理内容，将多个换行替换为段落分隔
+            let content = bookContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            
+            // 分割成段落
+            const paragraphs = content.split('\n').filter(p => p.trim() !== '');
+            
+            let currentPageContent = '';
+            
+            for (let i = 0; i < paragraphs.length; i++) {
+                const paragraph = paragraphs[i];
+                
+                // 如果当前页内容加上新段落会超过最大长度，则开始新页
+                if (currentPageContent.length + paragraph.length > MAX_CONTENT_LENGTH && currentPageContent.length > 0) {
+                    pages.push(currentPageContent);
+                    currentPageContent = paragraph;
+                } else {
+                    // 如果不是第一段，添加段落分隔
+                    if (currentPageContent.length > 0) {
+                        currentPageContent += '\n\n';
+                    }
+                    currentPageContent += paragraph;
+                }
+            }
+            
+            // 添加最后一页
+            if (currentPageContent.length > 0) {
+                pages.push(currentPageContent);
+            }
+            
+            totalPages = pages.length;
+            
+            // 如果没有内容，添加一个空页
+            if (totalPages === 0) {
+                pages.push('无内容');
+                totalPages = 1;
+            }
+        }
+        
+        // 更新页面内容
+        function updatePage() {
+            if (pages.length === 0) {
+                emptyState.style.display = 'flex';
+                readerContent.innerHTML = '';
+                readerContent.appendChild(emptyState);
+                pageIndicator.textContent = '- / -';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            // 确保当前页码在有效范围内
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            // 显示当前页内容
+            readerContent.innerHTML = '';
+            const pageContent = document.createElement('div');
+            pageContent.textContent = pages[currentPage - 1];
+            readerContent.appendChild(pageContent);
+            
+            // 更新字体大小
+            readerContent.style.fontSize = `${fontSize}rem`;
+            
+            // 更新页面指示器
+            pageIndicator.textContent = `${currentPage} / ${totalPages}`;
+            
+            // 更新按钮状态
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+        }
+        
+        // 上一页
+        function goToPrevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePage();
+                saveProgress();
+                
+                // 添加翻页动画
+                addPageAnimation('prev');
+            }
+        }
+        
+        // 下一页
+        function goToNextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePage();
+                saveProgress();
+                
+                // 添加翻页动画
+                addPageAnimation('next');
+            }
+        }
+        
+        // 翻页动画
+        function addPageAnimation(direction) {
+            readerContent.style.transform = direction === 'next' 
+                ? 'translateX(-20px)' 
+                : 'translateX(20px)';
+            
+            setTimeout(() => {
+                readerContent.style.transform = 'translateX(0)';
+            }, 150);
+        }
+        
+        // 处理触摸开始事件
+        function handleTouchStart(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
+        
+        // 处理触摸结束事件
+        function handleTouchEnd(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }
+        
+        // 处理滑动手势
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            
+            // 向左滑动：下一页
+            if (diff > SWIPE_THRESHOLD) {
+                goToNextPage();
+            }
+            // 向右滑动：上一页
+            else if (diff < -SWIPE_THRESHOLD) {
+                goToPrevPage();
+            }
+        }
+        
+        // 字体大小控制
+        function decreaseFontSize() {
+            if (fontSize > 0.8) {
+                fontSize -= 0.1;
+                updatePage();
+                saveFontSize();
+            }
+        }
+        
+        function increaseFontSize() {
+            if (fontSize < 2.0) {
+                fontSize += 0.1;
+                updatePage();
+                saveFontSize();
+            }
+        }
+        
+        function resetFontSize() {
+            fontSize = 1.2;
+            updatePage();
+            saveFontSize();
+        }
+        
+        // 保存阅读进度
+        function saveProgress() {
+            if (bookContent) {
+                const progress = {
+                    contentHash: simpleHash(bookContent),
+                    currentPage: currentPage,
+                    fontSize: fontSize
+                };
+                localStorage.setItem('novelReaderProgress', JSON.stringify(progress));
+            }
+        }
+        
+        // 加载阅读进度
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('novelReaderProgress');
+            if (savedProgress) {
+                try {
+                    const progress = JSON.parse(savedProgress);
+                    
+                    // 加载字体大小
+                    if (progress.fontSize) {
+                        fontSize = progress.fontSize;
+                    }
+                } catch (e) {
+                    console.error('加载进度失败:', e);
+                }
+            }
+        }
+        
+        // 保存字体大小
+        function saveFontSize() {
+            const savedProgress = localStorage.getItem('novelReaderProgress');
+            let progress = savedProgress ? JSON.parse(savedProgress) : {};
+            progress.fontSize = fontSize;
+            localStorage.setItem('novelReaderProgress', JSON.stringify(progress));
+        }
+        
+        // 简单哈希函数用于标识内容
+        function simpleHash(str) {
+            let hash = 0;
+            if (str.length === 0) return hash;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash;
+        }
+        
+        // 显示/隐藏加载动画
+        function showLoading(show) {
+            if (show) {
+                loading.classList.add('active');
+            } else {
+                loading.classList.remove('active');
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

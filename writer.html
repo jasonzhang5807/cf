@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页写作文工具</title>
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('./font.ttf') format('truetype');
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'CustomFont', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #3a5a80;
+        }
+        
+        .hint {
+            font-size: 14px;
+            color: #666;
+            align-self: center;
+        }
+        
+        .editor-container {
+            padding: 20px;
+        }
+        
+        #editor {
+            width: 100%;
+            min-height: 500px;
+            font-family: 'CustomFont', monospace;
+            font-size: 18px;
+            line-height: 1.8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        #editor:focus {
+            border-color: #4a6fa5;
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+        
+        .instructions {
+            background-color: #f9f9f9;
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>网页写作文工具</h1>
+        </header>
+        
+        <div class="toolbar">
+            <div class="buttons">
+                <button id="saveBtn">保存文档</button>
+                <button id="loadBtn">读取文档</button>
+                <button id="clearBtn">清空编辑器</button>
+            </div>
+            <div class="hint">
+                按 <span class="highlight">Ctrl+E</span> 居中当前行，<span class="highlight">Tab</span> 键空两格
+            </div>
+        </div>
+        
+        <div class="editor-container">
+            <textarea id="editor" placeholder="开始写作..."></textarea>
+        </div>
+        
+        <div class="instructions">
+            <p><strong>使用说明：</strong></p>
+            <ul>
+                <li>按 <span class="highlight">Tab</span> 键在光标位置插入两个空格（段首缩进）</li>
+                <li>按 <span class="highlight">Ctrl+E</span> 将当前行文本居中，并添加居中标记 <span class="highlight">[jz]</span></li>
+                <li>点击 <span class="highlight">保存文档</span> 按钮将内容保存为 my_write.wrt 文件</li>
+                <li>点击 <span class="highlight">读取文档</span> 按钮从 my_write.wrt 文件中加载内容</li>
+                <li>所有文字使用统一字体和大小</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const editor = document.getElementById('editor');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        // 监听Tab键，插入两个空格
+        editor.addEventListener('keydown', function(e) {
+            // Tab键处理
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                
+                // 在光标位置插入两个空格
+                this.value = this.value.substring(0, start) + '     ' + this.value.substring(end);
+                
+                // 将光标移动到插入空格之后
+                this.selectionStart = this.selectionEnd = start + 5;
+            }
+            
+            // Ctrl+E 居中当前行
+            if (e.key === 'e' && e.ctrlKey) {
+                e.preventDefault();
+                centerCurrentLine();
+            }
+        });
+        
+        // 居中当前行的函数
+        function centerCurrentLine() {
+            const text = editor.value;
+            const cursorPos = editor.selectionStart;
+            
+            // 找到当前行的开始和结束位置
+            let lineStart = cursorPos;
+            let lineEnd = cursorPos;
+            
+            // 向前查找行开始（换行符或文本开始）
+            while (lineStart > 0 && text.charAt(lineStart - 1) !== '\n') {
+                lineStart--;
+            }
+            
+            // 向后查找行结束（换行符或文本结束）
+            while (lineEnd < text.length && text.charAt(lineEnd) !== '\n') {
+                lineEnd++;
+            }
+            
+            // 获取当前行文本
+            let currentLine = text.substring(lineStart, lineEnd);
+            
+            // 移除50个空格（如果有的话）
+            currentLine = currentLine.replace(/^\s{1,50}/, '').trim();
+            
+            // 添加居中标记并居中
+            const centeredLine = '                                                  ' + currentLine;
+            
+            // 替换原文本中的当前行
+            const newText = text.substring(0, lineStart) + centeredLine + text.substring(lineEnd);
+            
+            // 更新编辑器内容
+            editor.value = newText;
+            
+            // 将光标移动到居中行的末尾
+            const newCursorPos = lineStart + centeredLine.length;
+            editor.selectionStart = editor.selectionEnd = newCursorPos;
+            
+            // 重新聚焦编辑器
+            editor.focus();
+        }
+        
+        // 保存文档功能
+        saveBtn.addEventListener('click', function() {
+            const text = editor.value;
+            
+            // 创建Blob对象
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            
+            // 创建下载链接
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = 'my_write.wrt';
+            
+            // 触发下载
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            // 显示保存成功提示
+            alert('文档已保存为 my_write.wrt');
+        });
+        
+        // 读取文档功能
+        loadBtn.addEventListener('click', function() {
+            // 创建文件输入元素
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.wrt';
+            
+            // 当用户选择文件后
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                
+                if (!file) {
+                    return;
+                }
+                
+                // 检查文件类型
+                if (!file.name.endsWith('.wrt')) {
+                    alert('请选择.wrt文件');
+                    return;
+                }
+                
+                // 读取文件内容
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    // 将文件内容设置到编辑器中
+                    editor.value = event.target.result;
+                    alert('文档加载成功！');
+                };
+                
+                reader.onerror = function() {
+                    alert('读取文件时发生错误');
+                };
+                
+                reader.readAsText(file);
+            });
+            
+            // 触发文件选择
+            fileInput.click();
+        });
+        
+        // 清空编辑器
+        clearBtn.addEventListener('click', function() {
+            if (confirm('确定要清空编辑器内容吗？')) {
+                editor.value = '';
+                editor.focus();
+            }
+        });
+        
+        // 初始化编辑器焦点
+        editor.focus();
+        
+        // 加载示例文本（可选）
+        window.addEventListener('load', function() {
+            const sampleText = "                                             标题";
+            editor.value = sampleText;
+        });
+    </script>
+</body>
+</html>
