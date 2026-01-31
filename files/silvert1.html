@@ -1,0 +1,425 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="https://www.w3.org/1999/xhtml">
+
+<head>
+
+
+ <title>USACO</title>
+ <link rel="stylesheet" type="text/css" href="current/usaco.css?v=2.0">
+ <script src="current/js/jquery.min.js"></script>
+ <script src="https://d3js.org/d3.v3.min.js"></script>
+
+<META HTTP-EQUIV="EXPIRES" CONTENT="0">
+ <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+ <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    "HTML-CSS": {
+        scale: 85,
+        preferredFont: "STIX"
+    },
+  tex2jax: {
+    inlineMath: [['$','$'],['\\(','\\)']],
+    processEscapes: true,
+    skipTags: ['pre'],
+    processClass: "mathjax",
+    ignoreClass: "no-mathjax"
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+</head>
+
+<body class="no-mathjax">
+ <div align="center">
+  <div class="shadow1">
+
+   <div class="content">
+
+
+ <a href="index.php"><img src="current/images/usaco_logo.png" height="130px" border="0px" /></a>
+
+    <div class="navbar" align="left" border="10px">
+     <ul>
+      <li><a href="index.php">Overview</a></li>
+      <li><a href="index.php?page=details">Details / FAQ</a></li>
+      <li><a href="index.php?page=training">Training</a></li>
+      <li><a href="index.php?page=history">History</a></li>
+      <li><a href="index.php?page=resources">Resources</a></li>
+     </ul>
+    </div><br/>
+
+
+
+
+
+<div style="position:relative; float:left; left:10px; top:-50px; width:550px;">
+<div class="panel">
+
+<h2> USACO 2026 Second Contest, Silver </h2>
+<h2> Problem 1. Cow-libi 2 </h2>
+
+</div>
+</div>
+
+<div align="right" style="position:relative; float:right; right:30px; top:-40px; width:350px;">
+
+    <button style="margin-bottom:6px;" type="button" onClick="window.location='index.php?page=viewcontest';">Return to Problem List</button><br style="padding-top:6px"/>
+
+   Time Remaining: <b><span class='countdown' data-endtime='1769864832'>---</span></b><br/>
+
+</div>
+
+<br style="clear:both" />
+
+
+<div id="last-status" style="padding:10px; position:relative; float:left; left:30px; top:-45px; width:820px; border:1px solid black; background-color:#FFF; "
+        data-response-code="-1" data-sid="-1">
+   <img src="current/images/ajax.gif"/> <p style="display:inline;"> <b>Not submitted yet</b></p>
+<div id="trial-information"></div>
+<p style="text-align:left;" class="mono prewrap output-data"></p>
+</div>
+
+<br style="clear:both" />
+
+<div align="right" style="position:relative; float:right; right:40px; top:-93px; width:350px; z-index:2; padding:0px;">
+
+<form style="padding-top:60px;" action="">
+<select name="lang" style="background-color:#eee;" id="choose-language">
+<option value='en' selected='yes'>English (en)</option>
+<option value='fr'>French (fr)</option>
+<option value='ru'>Russian (ru)</option>
+<option value='es'>Spanish (es)</option>
+</select>
+</form>
+
+</div>
+
+<div align="left" style="position:relative; float:left; left:30px; top:-100px; width:840px; z-index:1;">
+<div align="left" class="problem-text" style='width:800px; padding-top:10px;'>
+<span id="probtext-text" class="mathjax">
+<p>Farmer John and Farmer Nhoj have taken their respective cows to sit around a
+campfire in hopes of settling their personal differences. In total, there are
+$N$ ($2 \leq N \leq 10^5$) cows sitting in a circular formation. When the
+farmers are ready to take their cows back to their farms, they realize one
+crucial mistake: since all the cows look the same and are mixed up, they are
+unable to identify which cows belong to which farmer!
+
+<p>Then the $N$ cows are organized into one straight line to be interrogated by the
+two farmers.
+<strong>
+Because of the confusion, the order of the cows in the line, from $1$ to $N$,
+might not correspond to their circular order around the campfire.
+</strong>
+
+<p>But the cows want to play a game. Instead of answering directly which farmer
+they belong to, they say which farmer the cows <strong> adjacent to them in the
+original circle </strong> belong to. Additionally, it is known that Farmer Nhoj's
+cows always lie but Farmer John raised his cows well and they will always tell
+the truth.
+
+<p>Given the statements of the cows, is it possible to assign each cow to either
+Farmer John or Farmer Nhoj such that the statements of the cows assigned to
+Farmer John are all true, and the statements of the cows assigned to Farmer Nhoj
+are all false?
+
+<p><div class='prob-in-spec'><h4>INPUT FORMAT (input arrives from the terminal / stdin):</h4>
+The first line contains $T$ ($1 \leq T \leq 1000$), the number of independent
+test cases, and an integer $C\in \{0,1\}$ (whether to output a construction or
+not).
+
+<p>The first line of each test case contains $N$.
+
+<p>The following line contains a string of length $N$ containing characters J or N.
+The $i$'th character is J if cow $i$ claims the cow to their <strong> left </strong> in
+the circle belongs to Farmer John, or Farmer Nhoj otherwise.
+
+<p>The following line contains a string of length $N$ containing characters J or N.
+The $i$'th character is J if cow $i$ claims the cow to their <strong> right </strong> in
+the circle belongs to Farmer John, or Farmer Nhoj otherwise.
+
+<p>It is guaranteed that the sum of $N$ over all tests does not exceed
+$5 \cdot 10^5$.
+</div>
+
+<p><div class='prob-out-spec'><h4>OUTPUT FORMAT (print output to the terminal / stdout):</h4>
+For each test case, output YES or NO.
+
+<p>Additionally, if $C=1$ and the answer is YES, output two more lines describing
+your construction:
+
+<p>The first line should contain a permutation $p_1, p_2, \dots, p_N$ of
+$1\dots N$, representing the circular order of the cows around the campfire,
+where cow $p_i$ is to the left of cow $p_{i+1}$ for $i$ in $1 \dots N - 1$, and
+cow $p_N$ is to the left of cow $p_1$.
+
+<p>The second line should contain a string $b_1b_2\dots b_N$ consisting only of Js
+and Ns, meaning that cow $p_i$ belongs to Farmer John if $b_i$ is J, or Farmer
+Nhoj otherwise.
+
+<p>Any valid construction will be accepted.
+</div>
+
+<p><h4>SAMPLE INPUT:</h4><pre class='in'>
+6 0
+3
+JJJ
+JJJ
+4
+JJNJ
+NJJJ
+6
+NJNJNJ
+JNNJNJ
+4
+NNNN
+NNNN
+3
+NNN
+NNN
+5
+JJNNJ
+NJNJJ
+</pre><h4>SAMPLE OUTPUT:</h4> <pre class='out'>
+YES
+NO
+NO
+YES
+NO
+YES
+</pre>
+
+<p><h4>SAMPLE INPUT:</h4><pre class='in'>
+6 1
+3
+JJJ
+JJJ
+4
+JJNJ
+NJJJ
+6
+NJNJNJ
+JNNJNJ
+4
+NNNN
+NNNN
+3
+NNN
+NNN
+5
+JJNNJ
+NJNJJ
+</pre><h4>SAMPLE OUTPUT:</h4> <pre class='out'>
+YES
+1 2 3
+JJJ
+NO
+NO
+YES
+1 2 3 4
+NJNJ
+NO
+YES
+4 5 2 1 3
+JJJJN
+</pre>
+
+<p>Consider the output for the sixth test case. Cows 1, 2, 4, 5 belong to Farmer
+John, and Cow 3 belongs to Farmer Nhoj.
+
+<p>The cows will then behave as follows:
+
+<p><ul><li>
+Cow 1's left and right neighbours are Cow 2 and Cow 3, respectively. Cow 1 says
+that Cow 2 belongs to Farmer John, and Cow 3 belongs to Farmer Nhoj.
+</li><li>
+Cow 2's left and right neighbours are Cow 5 and Cow 1, respectively. Cow 2 says
+that both cows belong to Farmer John.
+</li><li>
+Cow 3's left and right neighbours are Cow 1 and Cow 4, respectively. Cow 3
+(dishonestly) says that both cows belong to Farmer Nhoj.
+</li><li>
+Cow 4's left and right neighbours are Cow 3 and Cow 5, respectively. Cow 4 says
+that Cow 3 belongs to Farmer Nhoj, and Cow 5 belongs to Farmer John.
+</li><li>
+Cow 5's left and right neighbours are Cow 4 and Cow 2, respectively. Cow 5 says
+that both cows belong to Farmer John.
+</li></ul>
+
+<p>All these claims are consistent with the input.
+
+<p><div class='prob-section'><h4>SCORING:</h4>
+
+<p><ul><li>Input 3: $C=0$ and $N\le 10$</li><li>Input 4: $C=1$ and $N\le 10$</li><li>Inputs 5-8: $C=0$</li><li>Inputs 9-12: $C=1$</li></ul>
+
+<p></div>
+
+<p>
+
+<p>Problem credits: Chongtian Ma
+</span>
+</div>
+
+
+                <form class="submission" method="POST" action="current/tpcm/submit-solution.php" enctype="multipart/form-data">
+                        <div id="solution" style="height:20px;">
+
+                        <input type="hidden" name="cpid" value="1554"/>
+                                <div class="field2">
+                                <label for="language">Language:</label>
+                                <select name="language">
+                                        <option value='1'>C</option>
+<option value='6'>C++11</option>
+<option value='7'>C++17</option>
+<option value='9'>Java</option>
+<option value='3'>Python-2.7.17</option>
+<option value='4'>Python-3.6.9</option>
+                                </select></div>
+                                <div class="field2">
+                                <label for="sourcefile">Source File:</label>
+                                <input name="sourcefile" size="50" type="file" class="required" /></div>
+
+                        <div class="field2">
+                                <input name="solution-submit" id="solution-submit" type="submit" value="Submit Solution" /></div>
+                </div>
+                </form>
+
+</div>
+
+<div align="left" style="position:relative; float:left; left:30px; top:-30px; width:840px;">
+
+</div>
+
+<br style="clear:both" />
+
+    <script>
+        var retries = 100, timeout = 1000;
+
+        function postback()
+        {
+                var sid = $('#last-status').data('sid'); if (sid == -1) return;
+                $.post('current/tpcm/status-update.php', { sid: sid }, update_response, 'json');
+        }
+
+        function update_response(s)
+        {
+                // only try a limited number of times
+                if (--retries < 0) return;
+
+                // if there is xml data, update the DOM
+                if (s != null)
+                {
+                  $('#last-status img').attr("src","current/images/medal_none.png");
+                  if (parseInt(s.cd) <= -8 && s.sc == 'status-working') { $('#last-status img').attr("src","current/images/ajax.gif"); }
+
+                        // change class and text of the response box
+                        $('#last-status').removeClass().addClass(s.sc);
+                        $('#last-status p').text(s.sr);
+
+                        // change the response code of the data section
+                        $('#last-status').data('response-code', parseInt(s.cd));
+                        $('#last-status .output-data').hide();
+
+                        if (s.output != null)
+                          {
+                            $('#last-status .output-data').show().text(s.output);
+                            // if the status is in a "working" state, keep checking
+                            if (parseInt($('#last-status').data('response-code')) <= -8)
+                              setTimeout(postback, timeout);
+
+                            return;
+                          }
+
+                        if (s.jd != null && s.jd.length != 0)
+                                $('#trial-information').html(s.jd);
+                }
+
+                // if the status is in a "working" state, keep checking
+                if (parseInt($('#last-status').data('response-code')) <= -8)
+            { setTimeout(postback, timeout); timeout *= 1.1; }
+        }
+
+        // shade contests by clicking on their header
+        var sc_offset = -1;
+
+        function updateClocks()
+        {
+                $('.countdown').each(function(x)
+                {
+                        // get the time remaining in seconds
+                        var endtime = parseInt($(this).data('endtime'));
+                        var sec = endtime - Math.floor(new Date()/1000) - sc_offset;
+
+                        // closes while we are watching it
+                        if (endtime != -1 && sec <= 0) window.location='index.php?page=viewcontest';
+
+                        // convert time remaining to days, hrs, min, sec
+                        var min = Math.floor(sec / 60); sec %= 60;
+                        var hrs = Math.floor(min / 60); min %= 60;
+
+                        // zero pad the values
+                        if (min < 10) min = '0' + min;
+                        if (sec < 10) sec = '0' + sec;
+
+                        // generate text and print information to the screen
+                        var interval;
+                        if (hrs > 24) {
+                           interval = Math.floor(hrs/24) + ' days, ' + hrs%24 + ' hrs, ' + min + ' min, ' + sec + ' sec';
+                        } else {
+                           interval = hrs + ' hrs, ' + min + ' min, ' + sec + ' sec';
+                        }
+                        $(this).text(endtime == -1 ? 'unlimited' : interval);
+                }).width(300);
+
+                setTimeout(updateClocks, 500);
+        };
+
+        $(document).ready(function(){
+                $.post('current/tpcm/get-time.php', null, function(data)
+                {
+                        sc_offset = data.time - Math.floor(new Date()/1000);
+                        updateClocks();
+                }, 'json');
+
+                $('#last-status .output-data').hide();
+                $('#last-status img').attr("src","current/images/medal_none.png");
+                if ($('#last-status').length) postback();
+
+     $('.masterTooltip').hover(function(){
+         // Hover over code
+         var title = $(this).attr('title');
+         $(this).data('tipText', title).removeAttr('title');
+         $('<p class="tooltip"></p>').text(title).appendTo('body').fadeIn('fast');
+     }, function() {
+         // Hover out code
+         $(this).attr('title', $(this).data('tipText'));
+         $('.tooltip').remove();
+     }).mousemove(function(e) {
+         var mousex = e.pageX + 20; //Get X coordinates
+         var mousey = e.pageY + 10; //Get Y coordinates
+         $('.tooltip').css({ top: mousey, left: mousex })
+     });
+
+        });
+
+        $('#choose-language').change(function(e){
+                window.location = "index.php?page=viewproblem&cpid=1554&lang=" + $(this).val();
+        });
+
+</script>
+
+
+   </div>
+  </div>
+ </div>
+
+ <br style="clear:both" />
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"78b56bf4c9b6423e9342269e694612c3","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c683c7e2817ad69',t:'MTc2OTg1MjMwOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+</html>
