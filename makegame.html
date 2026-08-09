@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>制作自定义图集 — 合成记忆</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.4;padding:18px;background:#f6f7fb;color:#111}
+    .wrap{max-width:760px;margin:0 auto;background:#fff;padding:18px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+    h1{font-size:18px;margin:0 0 12px}
+    .row{margin:10px 0}
+    button{padding:8px 12px;border-radius:6px;border:0;background:#1e88e5;color:#fff;cursor:pointer}
+    input[type=file]{display:block}
+    .muted{color:#666;font-size:13px}
+    .preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .preview img{width:52px;height:52px;object-fit:cover;border:1px solid #eee}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .log{margin-top:10px;font-size:13px;color:#444;background:#f3f5fb;padding:8px;border-radius:6px;max-height:160px;overflow:auto}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>制作 / 上传 自定义图集（前端完成）</h1>
+    <p class="muted">上传一个包含 1.png, 2.png, ... 的 .zip，或直接选择多张图片（文件名中包含数字序号）。页面会把每张图裁切/缩放为 52×52，并打包成 zip 下载，也可以一键“安装到本地”使游戏立刻使用。</p>
+
+    <div class="row">
+      <label>选择文件（zip 或 多张图片）</label>
+      <input id="fileInput" type="file" accept=".zip,image/*" multiple />
+    </div>
+
+    <div class="row">
+      <label>需要的水果数量（从 1.png 到 N.png，默认 6）</label>
+      <input id="count" type="number" value="6" min="1" style="width:80px" />
+    </div>
+
+    <div class="row actions">
+      <button id="processBtn">处理并生成 Zip（下载）</button>
+      <button id="installBtn" style="background:#00a86b">安装到本地并返回游戏</button>
+      <button id="previewBtn" style="background:#666">预览当前已选</button>
+      <a id="backGame" href="game.html" style="align-self:center;margin-left:auto;color:#1e88e5;text-decoration:none">回到游戏</a>
+    </div>
+
+    <div class="row">
+      <div class="muted">预览（52×52）</div>
+      <div id="preview" class="preview"></div>
+    </div>
+
+    <div class="row log" id="log"></div>
+  </div>
+
+  <!-- JSZip CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <script>
+  (function(){
+    const fileInput = document.getElementById('fileInput');
+    const processBtn = document.getElementById('processBtn');
+    const installBtn = document.getElementById('installBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const preview = document.getElementById('preview');
+    const logEl = document.getElementById('log');
+    const countInput = document.getElementById('count');
+
+    const TARGET_SIZE = 52; // 与 game.html 中使用的尺寸一致
+
+    function log(msg){ logEl.innerText = (new Date()).toLocaleTimeString() + '  ' + msg + '\n' + logEl.innerText }
+
+    // 把 image 元素按 cover 模式绘制到 canvas (裁切并填满)
+    function drawCoverToCanvas(img) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = TARGET_SIZE;
+      canvas.height = TARGET_SIZE;
+
+      const sw = img.naturalWidth, sh = img.naturalHeight;
+      const dw = canvas.width, dh = canvas.height;
+      const swRatio = sw / sh;
+      const dwRatio = dw / dh;
+
+      let sx=0, sy=0, sWidth=sw, sHeight=sh;
+      if (swRatio > dwRatio) {
+        // 原图更宽：裁去左右
+        sWidth = Math.round(sh * dwRatio);
+        sx = Math.round((sw - sWidth) / 2);
+      } else {
+        // 原图更高：裁去上下
+        sHeight = Math.round(sw / dwRatio);
+        sy = Math.round((sh - sHeight) / 2);
+      }
+      ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, dw, dh);
+      return canvas;
+    }
+
+    function fileListToMap(files) {
+      const map = {};
+      for (const f of files) {
+        map[f.name] = f;
+      }
+      return map;
+    }
+
+    async function processFilesToImages(entriesMap, neededCount) {
+      // 结果数组：index 从 1 到 neededCount -> dataURL 或 null
+      const results = new Array(neededCount + 1).fill(null);
+      for (let i=1;i<=neededCount;i++){
+        const name1 = `${i}.png`;
+        const name2 = `${i}.jpg`;
+        const name3 = `${i}.jpeg`;
+        const file = entriesMap[name1] || entriesMap[name2] || entriesMap[name3];
+        if(!file) continue;
+        const url = URL.createObjectURL(file);
+        // load image
+        await new Promise((res,rej)=>{
+          const img = new Image();
+          img.onload = () => {
+            const canvas = drawCoverToCanvas(img);
+            canvas.toBlob((blob)=>{
+              // create dataURL for storage and preview
+              const reader = new FileReader();
+              reader.onload = function(e){
+                results[i] = { blob, dataURL: e.target.result };
+                URL.revokeObjectURL(url);
+                res();
+              };
+              reader.onerror = rej;
+              reader.readAsDataURL(blob);
+            }, 'image/png');
+          };
+          img.onerror = function(err){ URL.revokeObjectURL(url); log('图片加载失败: '+name1); res(); };
+          img.src = url;
+        });
+        log(`处理 ${i}.png 完成`);
+      }
+      return results;
+    }
+
+    async function buildZipAndDownload(results) {
+      const zip = new JSZip();
+      for (let i=1;i<results.length;i++){
+        const item = results[i];
+        if(item && item.blob) {
+          zip.file(`${i}.png`, item.blob);
+        }
+      }
+      const content = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = 'custom_fruits.zip';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 5000);
+      log('zip 下载触发');
+    }
+
+    function saveToLocalStorage(results) {
+      // 建立 overrideFruit_v1 格式：数组元素包含 src,name,offset,rect
+      const names = ['葡萄','未知2','未知3','未知4','未知5','大西瓜']; // 你可以按需修改中文名
+      const arr = [];
+      for (let i=1;i<results.length;i++){
+        const item = results[i];
+        if(item && item.dataURL){
+          const name = (names[i-1] !== undefined) ? names[i-1] : ('第'+i+'图');
+          arr.push({
+            src: item.dataURL,
+            name: name,
+            offset: [0,0],
+            rect: [0,0,TARGET_SIZE,TARGET_SIZE]
+          });
+        } else {
+          // 如果缺失则使用占位（可选）
+          arr.push(null);
+        }
+      }
+      // 清理空位并保留顺序（游戏端加载时应能处理 null）
+      localStorage.setItem('overrideFruit_v1', JSON.stringify(arr));
+      log('已写入 localStorage（overrideFruit_v1），返回游戏即可生效');
+    }
+
+    async function handleFileList(files, neededCount){
+      log('开始处理文件...');
+      // 支持 zip 文件（优先）或直接的文件集合
+      const zipFile = Array.from(files).find(f=>/\.zip$/i.test(f.name));
+      const map = fileListToMap(files);
+      if(zipFile){
+        log('检测到 zip，尝试读取...');
+        const jszip = new JSZip();
+        const z = await jszip.loadAsync(zipFile);
+        const entriesMap = {};
+        // 抽取名字为 1.png,2.png... 的条目
+        for (const name of Object.keys(z.files)){
+          const short = name.split('/').pop();
+          if (/^\d+\.(png|jpg|jpeg)$/i.test(short)){
+            const num = parseInt(short,10);
+            if(num>=1 && num<=neededCount){
+              const blob = await z.files[name].async('blob');
+              entriesMap[short] = new File([blob], short, {type: blob.type});
+            }
+          }
+        }
+        return await processFilesToImages(entriesMap, neededCount);
+      } else {
+        // 使用 input 提供的图片
+        const entries = {};
+        for (const f of files){
+          const short = f.name.split('/').pop();
+          if(/^\d+\.(png|jpg|jpeg)$/i.test(short)){
+            entries[short] = f;
+          } else {
+            // 尝试从文件名中提取数字
+            const m = short.match(/(\d+)/);
+            if(m){
+              const num = parseInt(m[1],10);
+              if(num>=1 && num<=neededCount){
+                entries[`${num}.png`] = f; // treat as that slot
+              }
+            }
+          }
+        }
+        return await processFilesToImages(entries, neededCount);
+      }
+    }
+
+    previewBtn.addEventListener('click', async ()=>{
+      preview.innerHTML = '';
+      const files = fileInput.files;
+      if(!files || files.length===0){ log('请先选择文件'); return; }
+      const needed = Math.max(1, parseInt(countInput.value)||6);
+      const results = await handleFileList(files, needed);
+      results.forEach((it, idx)=>{
+        if(idx===0) return;
+        const img = document.createElement('img');
+        if(it && it.dataURL) img.src = it.dataURL;
+        else img.style.opacity = .15, img.alt = idx;
+        preview.appendChild(img);
+      });
+      log('预览已更新');
+    });
+
+    processBtn.addEventListener('click', async ()=>{
+      const files = fileInput.files;
+      if(!files || files.length===0){ log('请先选择文件'); return; }
+      const needed = Math.max(1, parseInt(countInput.value)||6);
+      const results = await handleFileList(files, needed);
+      await buildZipAndDownload(results);
+    });
+
+    installBtn.addEventListener('click', async ()=>{
+      const files = fileInput.files;
+      if(!files || files.length===0){ log('请先选择文件'); return; }
+      const needed = Math.max(1, parseInt(countInput.value)||6);
+      const results = await handleFileList(files, needed);
+      saveToLocalStorage(results);
+      // 给用户一点时间看到日志，然后跳回游戏
+      setTimeout(()=>{ window.location.href = 'game.html'; }, 800);
+    });
+
+  })();
+  </script>
+</body>
+</html>
